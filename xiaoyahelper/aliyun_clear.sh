@@ -4,7 +4,7 @@ ver="202402190042"
 
 upgrade_url="http://xiaoyahelper.zengge99.eu.org/aliyun_clear.sh"
 upgrade_url_backup="https://xiaoyahelper.ddsrem.com/aliyun_clear.sh"
-tg_push_api_url="https://xiaoyapush.ddsrem.com"
+tg_push_api_url="https://xiaoyapush.zngle.cf"
 
 hash_function() {
     str="$1"
@@ -517,6 +517,7 @@ copy_tvbox_files() {
     mkdir -p "$target_dir4"
     mkdir -p "$target_dir5"
     mkdir -p "$target_dir6"
+    ali_tiken="$(cat /data/mytoken.txt)"
 
     copy_files_by_extension() {
         local ext=$1
@@ -528,15 +529,16 @@ copy_tvbox_files() {
         for file in "${files[@]}"; do
             file_name=$(basename "$file")
             target_file="$target_dir/$file_name"
-
-            if [ -e "$target_file" ]; then
-                if cmp -s "$file" "$target_file"; then
-                    :
+            src_content="$(cat "$file_name" | sed "s/ALI_SHORT_TOKEN/$ali_tiken/g")"
+            if [ -f "$target_file" ]; then
+                dst_content="$(cat "$target_file")"
+                if [ "$src_content"x != "$dst_content"x ]; then
+                    echo "$src_content" > "$target_file"
                 else
-                    cp -f "$file" "$target_file" >/dev/null
+                    :
                 fi
             else
-                cp "$file" >/dev/null "$target_file"
+                echo "$src_content" > "$target_file"
             fi
         done
     }
@@ -556,14 +558,16 @@ copy_tvbox_files() {
             fi
             recursive_copy "$item" "$dest_path"
         elif [ -f "$item" ]; then
+            src_content="$(cat "$item" | sed "s/ALI_SHORT_TOKEN/$ali_tiken/g")"
             if [ -f "$dest_path" ]; then
-                if ! cmp -s "$item" "$dest_path"; then
-                    cp -f "$item" "$dest_path" >/dev/null
+                dst_content="$(cat "$dest_path")"
+                if [ "$src_content"x != "$dst_content"x ]; then
+                    echo "$src_content" > "$dest_path"
                 else
                     :
                 fi
             else
-                cp "$item" "$dest_path" >/dev/null
+                echo "$src_content" > "$dest_path"
             fi
         fi
     done
@@ -877,7 +881,7 @@ case "$run_mode" in
         fi
     ;;
     2)
-        echo "本模式已不再支持，建议使用模式3或模式4"
+        echo "本模式已不再支持，建议使用模式3或模式5"
     ;;
     3|4)
         gen_post_cmd_all
